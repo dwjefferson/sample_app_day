@@ -20,6 +20,8 @@ describe User do
 
   it { should be_valid }
   it { should_not be_admin }
+  # uses non-standard gem 'shoulda-matchers'
+  it { should_not allow_mass_assignment_of :admin }
 
   describe "with admin attribute set to 'true'" do
     before do
