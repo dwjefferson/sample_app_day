@@ -32,6 +32,15 @@ describe User do
   # uses non-standard gem 'shoulda-matchers'
   it { should_not allow_mass_assignment_of :admin }
 
+  # way tutorial wants
+  describe "accessible attributes" do
+      it "should not allow access to admin" do
+      expect do
+          User.new(admin: true)
+      end.to raise_error(ActiveModel::MassAssignmentSecurity::Error)
+    end
+  end
+
   describe "with admin attribute set to 'true'" do
     before do
       @user.save!
@@ -184,10 +193,29 @@ describe User do
   end
 
   describe "following" do
-    let(:other_user) { FactoryGirl.create(:user) }    
+    let(:other_user) { FactoryGirl.create(:user) }
     before do
       @user.save
       @user.follow!(other_user)
+      other_user.follow!(@user)
+    end
+
+    it "should destroy associated relationships" do
+        relationships = @user.relationships.dup
+      @user.destroy
+      relationships.should_not be_empty
+      relationships.each do |relationship|
+          Relationship.find_by_id(relationship.id).should be_nil
+      end
+    end
+
+    it "should destroy associated reverse_relationships" do
+        reverse_relationships = @user.reverse_relationships.dup
+        @user.destroy
+      reverse_relationships.should_not be_empty
+      reverse_relationships.each do |reverse_relationship|
+          Relationship.find_by_id(reverse_relationship.id).should be_nil
+      end
     end
 
     it { should be_following(other_user) }
